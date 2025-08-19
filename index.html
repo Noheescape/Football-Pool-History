@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Football Pool History</title>
+
+  <title>Debbie's NFL Pool</title>
+
+  <!-- App Icons -->
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     body {
@@ -59,17 +65,16 @@
       font-size: 14px;
       box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5);
     }
-
-    /* Brighter table styling */
     table {
       margin: 20px auto;
       border-collapse: collapse;
-      width: 80%;
+      width: 95%;
+      max-width: 800px;
       background: #2c2c2c;
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 4px 4px 15px rgba(0,0,0,0.7);
-      border: 2px solid #666; /* brighter border */
+      border: 2px solid #666;
     }
     th, td {
       border: 1px solid #666;
@@ -77,23 +82,20 @@
       text-align: center;
     }
     th {
-      background: #3a4a66; /* brighter header */
+      background: #3a4a66;
       font-weight: bold;
       color: #fff;
       text-shadow: 0 1px 2px #000;
     }
     tr:hover td {
-      background: #3a3a3a; /* subtle row hover effect */
+      background: #3a3a3a;
     }
-    /* Striped rows */
     tr:nth-child(even) td {
       background: #252525;
     }
     tr:nth-child(odd) td {
       background: #2c2c2c;
     }
-
-    /* Dots with neon glow */
     .dot {
       height: 14px;
       width: 14px;
@@ -105,7 +107,6 @@
     .green  { background-color: #00ff00; box-shadow: 0 0 8px #00ff00, 0 0 12px #00ff00; }
     .orange { background-color: #ff9900; box-shadow: 0 0 8px #ff9900, 0 0 12px #ff9900; }
     .blue   { background-color: #3399ff; box-shadow: 0 0 8px #3399ff, 0 0 12px #3399ff; }
-
     .legend {
       margin-top: 15px;
       font-size: 14px;
@@ -137,10 +138,23 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+    @media (max-width: 600px) {
+      body { font-size: 16px; }
+      input, button, select {
+        font-size: 16px;
+        padding: 10px;
+        width: 90%;
+        max-width: 300px;
+      }
+      .edit-input {
+        width: 90%;
+        max-width: 120px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Football Pool History</h1>
+  <h1>Debbie's NFL Pool</h1>
 
   <div class="controls">
     <input type="text" id="playerName" placeholder="Player Name">
@@ -184,8 +198,8 @@
       const stored = localStorage.getItem('playersData');
       if (stored) {
         players = JSON.parse(stored);
-        updateYearDropdown();
       }
+      updateYearDropdown();
     };
 
     function saveData() {
@@ -196,14 +210,20 @@
       const years = [...new Set(players.map(p => p.year))].sort((a,b)=>b-a);
       const yearSelect = document.getElementById('yearSelect');
       yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+
       if (years.length) {
         yearSelect.value = years[0];
         filterByYear();
+      } else {
+        document.getElementById('scoreTable').innerHTML = '';
       }
     }
 
     function filterByYear() {
-      const year = parseInt(document.getElementById('yearSelect').value);
+      const yearSelect = document.getElementById('yearSelect');
+      if (!yearSelect.value) return;
+
+      const year = parseInt(yearSelect.value);
       const table = document.getElementById('scoreTable');
       table.innerHTML = '';
 
@@ -258,7 +278,6 @@
       }
     }
 
-    // --- Export/Import Functions ---
     function exportData() {
       const dataStr = JSON.stringify(players, null, 2);
       const blob = new Blob([dataStr], {type: "application/json"});
@@ -291,6 +310,11 @@
         }
       };
       reader.readAsText(file);
+    }
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
     }
   </script>
 </body>
