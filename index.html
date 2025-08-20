@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Football Pool History</title>
+  <title>Debbie's NFL Pool</title>
 
   <!-- App Icons -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
   <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <style>
     body {
@@ -101,7 +102,7 @@
       width: 14px;
       border-radius: 50%;
       display: inline-block;
-      margin-right: 5px;
+      margin-left: 5px;
       box-shadow: 0 0 6px rgba(255,255,255,0.5);
     }
     .green  { background-color: #00ff00; box-shadow: 0 0 8px #00ff00, 0 0 12px #00ff00; }
@@ -122,202 +123,4 @@
     .edit-input {
       width: 100px;
       border-radius: 5px;
-      border: 1px solid #666;
-      background: #444;
-      color: #fff;
-      text-align: center;
-    }
-    .year-input {
-      width: 80px;
-    }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-    @media (max-width: 600px) {
-      body { font-size: 16px; }
-      input, button, select {
-        font-size: 16px;
-        padding: 10px;
-        width: 90%;
-        max-width: 300px;
-      }
-      .edit-input {
-        width: 90%;
-        max-width: 120px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h1>Football Pool History</h1>
-
-  <div class="controls">
-    <input type="text" id="playerName" placeholder="Player Name">
-    <input type="number" id="playerWins" placeholder="Wins" min="0">
-    <input type="number" id="playerYear" placeholder="Year" min="2000" max="2100" class="year-input">
-    <button onclick="addPlayer()">Add Player</button>
-    <button onclick="clearData()">Clear All Data</button>
-    <button onclick="exportData()">Export Data</button>
-    <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-    <button onclick="document.getElementById('importFile').click()">Import Data</button>
-  </div>
-
-  <div class="controls">
-    <label for="yearSelect">Select Year:</label>
-    <select id="yearSelect" onchange="filterByYear()"></select>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Wins</th>
-        <th>Winning %</th>
-        <th>Year</th>
-      </tr>
-    </thead>
-    <tbody id="scoreTable"></tbody>
-  </table>
-
-  <div class="legend">
-    <span><span class="dot green"></span>1st Place</span>
-    <span><span class="dot orange"></span>2nd Place</span>
-    <span><span class="dot blue"></span>3rd Place</span>
-  </div>
-
-  <script>
-    const TOTAL_GAMES = 544;
-    let players = [];
-
-    window.onload = () => {
-      const stored = localStorage.getItem('playersData');
-      if (stored) {
-        players = JSON.parse(stored);
-      }
-      updateYearDropdown();
-    };
-
-    function saveData() {
-      localStorage.setItem('playersData', JSON.stringify(players));
-    }
-
-    function updateYearDropdown() {
-      const years = [...new Set(players.map(p => p.year))].sort((a,b)=>b-a);
-      const yearSelect = document.getElementById('yearSelect');
-      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-
-      if (years.length) {
-        yearSelect.value = years[0];
-        filterByYear();
-      } else {
-        document.getElementById('scoreTable').innerHTML = '';
-      }
-    }
-
-    function filterByYear() {
-      const yearSelect = document.getElementById('yearSelect');
-      if (!yearSelect.value) return;
-
-      const year = parseInt(yearSelect.value);
-      const table = document.getElementById('scoreTable');
-      table.innerHTML = '';
-
-      const filtered = players.filter(p => p.year === year);
-      const sorted = [...filtered].sort((a,b)=>b.wins - a.wins);
-
-      sorted.forEach((p, i) => {
-        let dot = '';
-        if(i===0) dot='<span class="dot green"></span>';
-        else if(i===1) dot='<span class="dot orange"></span>';
-        else if(i===2) dot='<span class="dot blue"></span>';
-
-        const winPct = (p.wins / TOTAL_GAMES * 100).toFixed(1)+'%';
-
-        table.innerHTML += `
-          <tr>
-            <td><input class="edit-input" value="${p.name}" onchange="editPlayer(${players.indexOf(p)}, 'name', this.value)">${dot}</td>
-            <td><input type="number" class="edit-input" value="${p.wins}" min="0" onchange="editPlayer(${players.indexOf(p)}, 'wins', this.value)"></td>
-            <td>${winPct}</td>
-            <td><input type="number" class="edit-input year-input" value="${p.year}" min="2000" max="2100" onchange="editPlayer(${players.indexOf(p)}, 'year', this.value)"></td>
-          </tr>
-        `;
-      });
-    }
-
-    function addPlayer() {
-      const n = document.getElementById('playerName').value.trim();
-      const w = parseInt(document.getElementById('playerWins').value);
-      const y = parseInt(document.getElementById('playerYear').value);
-      if(!n || isNaN(w) || isNaN(y)) { alert('Enter valid data'); return; }
-      players.push({name:n, wins:w, year:y});
-      saveData();
-      document.getElementById('playerName').value='';
-      document.getElementById('playerWins').value='';
-      document.getElementById('playerYear').value='';
-      updateYearDropdown();
-    }
-
-    function editPlayer(index, field, value) {
-      if(field==='wins' || field==='year') value = parseInt(value);
-      players[index][field] = value;
-      saveData();
-      updateYearDropdown();
-    }
-
-    function clearData() {
-      if(confirm('Are you sure you want to clear all data?')) {
-        players=[];
-        localStorage.removeItem('playersData');
-        document.getElementById('scoreTable').innerHTML='';
-        document.getElementById('yearSelect').innerHTML='';
-      }
-    }
-
-    function exportData() {
-      const dataStr = JSON.stringify(players, null, 2);
-      const blob = new Blob([dataStr], {type: "application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "nfl_pool_data.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importData(event) {
-      const file = event.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if(Array.isArray(imported)) {
-            players = imported;
-            saveData();
-            updateYearDropdown();
-            filterByYear();
-            alert("Data imported successfully!");
-          } else {
-            alert("Invalid file format.");
-          }
-        } catch(err) {
-          alert("Error reading file.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // Register service worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
-</body>
-</html>
-
-
+      bo
