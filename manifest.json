@@ -1,5 +1,5 @@
 {
-  "name": "Debbie's NFL Pool",
+  "name": "Football Pool History",
   "short_name": "NFL Pool",
   "start_url": "index.html",
   "display": "standalone",
@@ -10,3 +10,4 @@
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
+
